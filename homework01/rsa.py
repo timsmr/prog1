@@ -13,11 +13,13 @@ def is_prime(n: int) -> bool:
     >>> is_prime(8)
     False
     """
-    for i in range(2, round(n*(1/2))):
-        if n % i == 0:
-            return False
-    return True
-    pass
+    if n > 1 or n < -1:
+        for i in range(2, round(n*(1/2))):
+            if n % i == 0:
+                return False
+        return True
+    else:
+        return False
 
 
 def gcd(a: int, b: int) -> int:
@@ -29,11 +31,9 @@ def gcd(a: int, b: int) -> int:
     >>> gcd(3, 7)
     1
     """
-    nod = 0
-    for i in range(1, min(a, b)):
-        if a % i == 0 and b % i == 0:
-            nod = max(nod, i)
-    return nod
+    while a % b != 0:
+        a, b = b, a % b
+    return b
 
 
 def multiplicative_inverse(e: int, phi: int) -> int:
@@ -110,3 +110,7 @@ if __name__ == "__main__":
     print("Decrypting message with public key ", public, " . . .")
     print("Your message is:")
     print(decrypt(public, encrypted_msg))
+
+
+
+
