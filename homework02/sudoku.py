@@ -1,4 +1,5 @@
 from typing import Tuple, List, Set, Optional
+import random
 
 
 def read_sudoku(filename: str) -> List[List[str]]:
@@ -28,7 +29,7 @@ def group(values: List[str], n: int) -> List[List[str]]:
     >>> group([1,2,3,4,5,6,7,8,9], 3)
     [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
     """
-    pass
+    return [ [ values[ j + i ] for j in range( n ) ] for i in range(0, n*n, n) ]
 
 
 def get_row(grid: List[List[str]], pos: Tuple[int, int]) -> List[str]:
@@ -41,7 +42,7 @@ def get_row(grid: List[List[str]], pos: Tuple[int, int]) -> List[str]:
     >>> get_row([['1', '2', '3'], ['4', '5', '6'], ['.', '8', '9']], (2, 0))
     ['.', '8', '9']
     """
-    pass
+    return grid[ pos[0] ]
 
 
 def get_col(grid: List[List[str]], pos: Tuple[int, int]) -> List[str]:
@@ -54,7 +55,7 @@ def get_col(grid: List[List[str]], pos: Tuple[int, int]) -> List[str]:
     >>> get_col([['1', '2', '3'], ['4', '5', '6'], ['.', '8', '9']], (0, 2))
     ['3', '6', '9']
     """
-    pass
+    return [ i[ pos[1] ] for i in grid ]
 
 
 def get_block(grid: List[List[str]], pos: Tuple[int, int]) -> List[str]:
@@ -68,7 +69,15 @@ def get_block(grid: List[List[str]], pos: Tuple[int, int]) -> List[str]:
     >>> get_block(grid, (8, 8))
     ['2', '8', '.', '.', '.', '5', '.', '7', '9']
     """
-    pass
+    block = []
+    g = int( len( grid[0] ) ** (1/2))
+    m = pos[0] // g * 3
+    n = pos[1] // g * 3
+
+    for i in grid[m : m + g]:
+        block += i[n : n + g]
+
+    return block
 
 
 def find_empty_positions(grid: List[List[str]]) -> Optional[Tuple[int, int]]:
@@ -81,7 +90,9 @@ def find_empty_positions(grid: List[List[str]]) -> Optional[Tuple[int, int]]:
     >>> find_empty_positions([['1', '2', '3'], ['4', '5', '6'], ['.', '8', '9']])
     (2, 0)
     """
-    pass
+    for i in range(len(grid)):
+        if '.' in grid[i]:
+            return (i, grid[i].index('.'))
 
 
 def find_possible_values(grid: List[List[str]], pos: Tuple[int, int]) -> Set[str]:
@@ -95,9 +106,12 @@ def find_possible_values(grid: List[List[str]], pos: Tuple[int, int]) -> Set[str
     >>> values == {'2', '5', '9'}
     True
     """
-    pass
+    a = [i for i in get_col(grid, pos) if type(i) == str ] +\
+        [i for i in get_row(grid, pos) if type(i) == str ] + \
+        [i for i in get_block(grid, pos) if type(i) == str ]
+    return set([str(i) for i in range(1, 10)]).difference(a)
 
-
+   
 def solve(grid: List[List[str]]) -> Optional[List[List[str]]]:
     """ Решение пазла, заданного в grid """
     """ Как решать Судоку?
@@ -111,14 +125,39 @@ def solve(grid: List[List[str]]) -> Optional[List[List[str]]]:
     >>> solve(grid)
     [['5', '3', '4', '6', '7', '8', '9', '1', '2'], ['6', '7', '2', '1', '9', '5', '3', '4', '8'], ['1', '9', '8', '3', '4', '2', '5', '6', '7'], ['8', '5', '9', '7', '6', '1', '4', '2', '3'], ['4', '2', '6', '8', '5', '3', '7', '9', '1'], ['7', '1', '3', '9', '2', '4', '8', '5', '6'], ['9', '6', '1', '5', '3', '7', '2', '8', '4'], ['2', '8', '7', '4', '1', '9', '6', '3', '5'], ['3', '4', '5', '2', '8', '6', '1', '7', '9']]
     """
-    pass
+    if not find_empty_positions(grid):
+        count = 1
+        while count != 0:
+            count = 0
+            for i in range(9):
+                for j in range(9):
+                    if type(grid[i][j]) == set:
+                        grid[i][j] = find_possible_values(grid, (i, j))
+                        if len(grid[i][j]) == 1:
+                            grid[i][j] = list(grid[i][j])[0]
+                            count += 1
+
+    else:
+        g = find_empty_positions(grid)
+        grid[g[0]][g[1]] = find_possible_values(grid, g)
+        solve(grid)
+    return grid
 
 
 def check_solution(solution: List[List[str]]) -> bool:
     """ Если решение solution верно, то вернуть True, в противном случае False """
     # TODO: Add doctests with bad puzzles
-    pass
-
+    for i in range(9):
+        for j in range(9):
+            if '.' in solution[i] or '.' in get_col(solution, (i, j)) or '.' in get_block(solution, (i, j)):
+                return False
+            elif sum(map(int, get_row(solution, (i, j)))) == sum(map(int, get_col(solution, (i, j)))) and \
+                sum(map(int, get_row(solution, (i, j)))) == sum(map(int, get_block(solution, (i, j)))) and \
+                sum(map(int, get_col(solution, (i, j)))) == sum(map(int, get_block(solution, (i, j)))):
+                continue
+            else:
+                return False
+    return True
 
 def generate_sudoku(N: int) -> List[List[str]]:
     """ Генерация судоку заполненного на N элементов
@@ -142,7 +181,7 @@ def generate_sudoku(N: int) -> List[List[str]]:
     >>> check_solution(solution)
     True
     """
-    pass
+
 
 
 if __name__ == '__main__':
